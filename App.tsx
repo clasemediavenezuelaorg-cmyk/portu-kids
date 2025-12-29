@@ -4,7 +4,6 @@ import { LESSONS } from './lib/lessons';
 import { AppState, Lesson, UserProgress } from './types';
 import Header from './components/Header';
 import SpeechExercise from './components/SpeechExercise';
-// Added Star to the list of icons imported from lucide-react to resolve the missing reference error.
 import { CheckCircle2, Trophy, ArrowRight, Loader2, Star } from 'lucide-react';
 import { supabase, loadProgress, saveProgress } from './lib/supabase';
 
@@ -20,25 +19,32 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const initProgress = async () => {
-      // Try to load from Supabase if available
-      const saved = await loadProgress();
-      if (saved) {
-        setProgress({
-          stars: saved.stars || 0,
-          completedLessons: saved.completed_lessons || []
-        });
-      } else {
-        // Fallback to local storage
-        const local = localStorage.getItem('amiguinho_progress');
-        if (local) {
-          try {
-            setProgress(JSON.parse(local));
-          } catch (e) {
-            console.error("Error parsing local progress", e);
+      try {
+        console.log("Iniciando aplicación...");
+        // Intenta cargar desde Supabase
+        const saved = await loadProgress();
+        if (saved) {
+          setProgress({
+            stars: saved.stars || 0,
+            completedLessons: saved.completed_lessons || []
+          });
+        } else {
+          // Fallback a localStorage si Supabase no devuelve nada o no hay sesión
+          const local = localStorage.getItem('amiguinho_progress');
+          if (local) {
+            try {
+              setProgress(JSON.parse(local));
+            } catch (e) {
+              console.error("Error parseando progreso local", e);
+            }
           }
         }
+      } catch (error) {
+        console.error("Error en la inicialización:", error);
+      } finally {
+        // Siempre quitamos el loading para que el niño pueda jugar, incluso sin conexión
+        setLoading(false);
       }
-      setLoading(false);
     };
     initProgress();
   }, []);
@@ -46,7 +52,7 @@ const App: React.FC = () => {
   useEffect(() => {
     if (!loading) {
       localStorage.setItem('amiguinho_progress', JSON.stringify(progress));
-      saveProgress(progress.stars, progress.completedLessons);
+      saveProgress(progress.stars, progress.completedLessons).catch(console.error);
     }
   }, [progress, loading]);
 
@@ -90,8 +96,8 @@ const App: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-blue-50">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
-          <p className="text-blue-600 font-bold text-xl animate-pulse">¡Cargando tu aventura! 🦜</p>
+          <Loader2 className="w-16 h-16 text-blue-500 animate-spin" />
+          <p className="text-blue-600 font-bold text-2xl animate-pulse">¡Cargando tu aventura! 🦜</p>
         </div>
       </div>
     );
