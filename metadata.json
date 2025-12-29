@@ -1,0 +1,7 @@
+{
+  "name": "Amiguinho Português",
+  "description": "A playful, interactive Portuguese learning app for kids using AI-powered voice recognition and friendly Gemini guidance.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
